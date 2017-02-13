@@ -11,12 +11,26 @@
 
 
 CreateUser() {
-	#$1 - Username
-	#$2 - true if password should be set, false if password should be blank
+	#u - Username
+	#b - set if the password should be blank for the user, otherwise it is promted during setup
 	
-	username=$1
-	setBlankPassword=$2
+	username=''
+	setBlankPassword=false
+
+	while getopts 'abf:v' flag; do
+		case "${flag}" in
+			u) username="${OPTARG}" ;;
+			b) setBlankPassword='true' ;;
+			*) error "Unexpected option ${flag}" ;;
+		esac
+	done
 	
+	if [ -z "$username" ]; then
+		echo -e "\e[91mBlank username was provided"
+		tput sgr0
+		return 2
+	fi
+
 	addUserParams='--gecos ""'
 	
 	if [ "$setBlankPassword" = false ]; then
@@ -98,4 +112,18 @@ SanitizeWindowsFileFormat(){
 	rm $1
 	mv /tmp/raspi-config-tempfile $1
 
+}
+
+ReadSettings(){
+	#Reads the settings file and returns
+	#a hashtable with the results
+	
+	
+#!/bin/ksh
+file="/home/vivek/data.txt"
+while IFS= read line
+do
+        # display $line or do somthing with $line
+	echo "$line"
+done <"$file"
 }
