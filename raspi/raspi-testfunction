@@ -1,0 +1,31 @@
+#!/bin/bash
+
+#Create default users
+
+configdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source "$configdir/raspi-setup-functions"
+
+if [ ! -f $configdir/raspi-setup-functions ];
+then
+	echo -e "\e[91mraspi-setup-user not found in $configdir/raspi-setup-functions, exiting script"
+	tput sgr0
+	exit 2
+fi
+
+
+echo ""
+echo ""
+echo -e "\e[95mUser setup"
+tput sgr0
+
+currentUser="functionuser1"
+CreateUser -u $currentUser -b
+
+
+currentUser="functionuser2"
+CreateUser -u $currentUser
+
+echo ""
+echo -e "\e[92mUser setup complete!"
+#echo -e "\e[93mRemember to disable the default admin!"
+tput sgr0

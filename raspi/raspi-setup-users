@@ -1,0 +1,47 @@
+#!/bin/bash
+
+#Create default users
+
+configdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source "$configdir/raspi-setup-functions"
+
+if [ ! -f $configdir/raspi-setup-functions ];
+then
+	echo -e "\e[91mraspi-setup-user not found in $configdir/raspi-setup-functions, exiting script"
+	tput sgr0
+	exit 2
+fi
+
+
+echo ""
+echo ""
+echo -e "\e[95mUser setup"
+tput sgr0
+
+currentUser="michael"
+CreateUser $currentUser true
+if [ $? = 0 ]; then
+	ConfigureSSH $currentUser
+fi
+
+currentUser="mmuffins"
+CreateUser $currentUser true
+if [ $? = 0 ]; then
+	ConfigureSSH $currentUser
+fi
+
+currentUser="pibackup"
+CreateUser $currentUser true
+if [ $? = 0 ]; then
+	ConfigureSSH $currentUser
+fi
+
+
+echo -e "\e[94mGiving sudo permissions to mmuffins..."
+tput sgr0
+sudo bash -c 'echo "mmuffins ALL=(ALL) NOPASSWD: ALL" | (EDITOR="tee -a" visudo)'
+
+echo ""
+echo -e "\e[92mUser setup complete!"
+#echo -e "\e[93mRemember to disable the default admin!"
+tput sgr0
