@@ -3,14 +3,15 @@
 #pi network setup
 
 configdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-source "$configdir/raspi-setup-functions"
 
-if [ ! -f $configdir/raspi-setup-functions ];
+if [ ! -f $configdir/raspi-setup-functions.sh ];
 then
 	echo -e "\e[91mraspi-setup-user not found in $configdir/raspi-setup-functions, exiting script"
 	tput sgr0
 	exit 2
 fi
+
+source "$configdir/raspi-setup-functions.sh"
 
 echo ""
 echo ""
