@@ -1,0 +1,5 @@
+1- sudo bash raspi-setup-checkconfigfiles
+2- sudo bash raspi-setup-users
+3- sudo bash raspi-setup-network
+4- sudo bash rasip-setup-samba
+5- sudo bash rasip-setup-backup
