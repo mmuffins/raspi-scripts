@@ -11,20 +11,12 @@
 
 
 CreateUser() {
-	#u - Username
-	#b - set if the password should be blank for the user, otherwise it is promted during setup
+	#$1 - Username
+	#$2 - set to false if the password should be blank for the user, otherwise it is promted during setup
 	
-	username=''
-	setBlankPassword=false
+	username=$1
+	setBlankPassword=$2
 
-	while getopts 'abf:v' flag; do
-		case "${flag}" in
-			u) username="${OPTARG}" ;;
-			b) setBlankPassword='true' ;;
-			*) error "Unexpected option ${flag}" ;;
-		esac
-	done
-	
 	if [ -z "$username" ]; then
 		echo -e "\e[91mBlank username was provided"
 		tput sgr0
@@ -101,7 +93,7 @@ ExitIfFileIsMissing() {
 	fi
 }
 
-SanitizeWindowsFileFormat(){
+SanitizeWindowsFileFormat() {
 
 	#The format windows saves files is incompatible with some operations, 
 	#they should be converted to a linux compatible format
@@ -114,16 +106,26 @@ SanitizeWindowsFileFormat(){
 
 }
 
-ReadSettings(){
-	#Reads the settings file and returns
-	#a hashtable with the results
+
+GetSettings() {
+	#Returns sanatized contents of a config file
+	#$1 - Path of the config file
+
+	configlocation=$1
+
+	if [ -z "$configlocation" ]; then
+		echo -e "\e[91mNo config file location was provided"
+		tput sgr0
+		return 2
+	fi
+
+	if [ ! -f $configlocation ];
+	then
+		echo -e "\e[91mCould not open file at $configlocation"
+		tput sgr0
+		exit 2
+	fi
+
+	sed 's/^[ \t]*//;s/[ \t]*$//' $configlocation | grep -v '^#'
 	
-	
-#!/bin/ksh
-file="/home/vivek/data.txt"
-while IFS= read line
-do
-        # display $line or do somthing with $line
-	echo "$line"
-done <"$file"
 }

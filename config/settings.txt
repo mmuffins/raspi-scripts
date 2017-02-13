@@ -1,8 +1,0 @@
-#raspi_user - creates new user
-#raspi_user=[username];[setpassword]
-#username - name of the created user
-#setpassword - should the script prompt for a password during creation of the user?
-#raspi_user=user1;true
-#raspi_user=serviceaccount1;false
-raspi_user=user1;true
-raspi_user=serviceaccount1;false
