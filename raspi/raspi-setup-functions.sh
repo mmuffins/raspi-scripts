@@ -26,9 +26,7 @@ CreateUser() {
 	if [ "$(grep -c "^$username:" /etc/passwd)" -gt 0 ]; then
 		echo -e "\e[94m$username was already present in /etc/passwd, no actions were performed."
 		tput sgr0
-		return 2	
-	else
-		sudo bash -c 'echo "$0 ALL=(ALL) NOPASSWD: ALL" | (EDITOR="tee -a" visudo)' $lineuser
+		return 2
 	fi
 	
 	addUserParams='--gecos ""'
@@ -65,7 +63,7 @@ ConfigureSSH() {
 	sshIdFile="$sshDirectory/id_rsa"
 
 	
-	echo -e "\e[94mSetting up basic ssh settings for $username..."
+	echo -e "\e[94mCreating ssh keypair for $username..."
 	echo -e "\e[94mCreating $sshDirectory..."
 	tput sgr0
 	mkdir $sshDirectory
