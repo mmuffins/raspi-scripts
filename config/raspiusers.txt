@@ -1,0 +1,8 @@
+#users list for raspery pi
+#use format [username];[setpassword]
+#username - name of the created user
+#setpassword - should the script prompt for a password during creation of the user?
+#user1;true
+#serviceaccount1;false
+user1;true
+user2;false

@@ -1,0 +1,3 @@
+#list of users that should be be given root permissions
+user1
+user2

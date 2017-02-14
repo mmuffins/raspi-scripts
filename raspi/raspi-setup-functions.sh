@@ -23,6 +23,14 @@ CreateUser() {
 		return 2
 	fi
 
+	if [ "$(grep -c "^$username:" /etc/passwd)" -gt 0 ]; then
+		echo -e "\e[94m$username was already present in /etc/passwd, no actions were performed."
+		tput sgr0
+		return 2	
+	else
+		sudo bash -c 'echo "$0 ALL=(ALL) NOPASSWD: ALL" | (EDITOR="tee -a" visudo)' $lineuser
+	fi
+	
 	addUserParams='--gecos ""'
 	
 	if [ "$setBlankPassword" = false ]; then
