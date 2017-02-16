@@ -6,19 +6,15 @@
 #-Exchange ssh keys between local host and backup target to enable rsync
 #Part 2
 #-create a backup folder in the home directory of the backup user
-#-create a backup config file
-#-put the actual backup script into the backup folder
-#-schedule cron jobs to backup data and copy the backups to another location
-#
-#Whenever new applications are set up, they should add all locations that
-#need to be backed up to the backup config file
+#-Exchange ssh keys with the backup target server
+#-Set up the actual backu script and schedule cron jobs for it
+
 
 configdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 if [ ! -f $configdir/raspi-setup-functions.sh ];
 then
-	echo -e "\e[91mraspi-setup-user not found in $configdir/raspi-setup-functions, exiting script"
-	tput sgr0
+	echo -e "\e[91mraspi-setup-user not found in $configdir/raspi-setup-functions, exiting script"; tput sgr0
 	exit 2
 fi
 
@@ -33,6 +29,9 @@ configfile="$configdir/config/backup.txt"
 ExitIfFileIsMissing $configfile
 source $configfile
 
+backupsyncscript="$configdir/raspi-backup-syncfiles.sh"
+ExitIfFileIsMissing $backupsyncscript
+
 sshDirectory="/home/$backupUser/.ssh"
 knownHostsFile="$sshDirectory/known_hosts"
 sshIdFile="$sshDirectory/id_rsa"
@@ -46,15 +45,14 @@ if [ $? = 0 ]; then
 fi
 
 if [ $? != 0 ]; then
-	ConfigureSSH $backupUser
-	echo -e "\e[91mCould not create ssh keypairs for user, aborting script "
+	echo -e "\e[91mCould not create ssh keypairs for user, aborting script "; tput sgr0
 	exit 2
 fi
 
 #Check if needed ssh keys exist
 
 if [ ! -d $sshDirectory ]; then
-	echo -e "\e[91m$sshDirectory was not found, aborting script"
+	echo -e "\e[91m$sshDirectory was not found, aborting script"; tput sgr0
 	exit 2
 fi
 
@@ -91,42 +89,69 @@ chown -R $backupUser:$backupUser $sshDirectory
 #sudo ssh -i $sshIdFile "$backupUser@$backupTargetHost"
 #If no password is requested ssh access is properly set up
 #******************
+
 echo -e "\e[92mCompleted ssh key exchange with backup target"; tput sgr0
 echo -e "\e[95mPart2 - Setup backup"; tput sgr0
 
-#Doesn't do anything if rsync is already installed, so no harm in trying
-echo -e "\e[94mInstalling rsync..."; tput sgr0
-apt-get -y install rsync
+
+which rsync > /dev/null 2>&1
+
+if [ $? != 0 ]; then
+	echo -e "\e[94mInstalling rsync..."; tput sgr0
+	apt-get -y install rsync
+else
+	echo -e "\e[94mrsync already installed"; tput sgr0
+fi
 
 
 if [ ! -d $backupDir ]; then
-	echo -e "\e[91m$Creating $backupDir..."
+	echo -e "\e[94mCreating $backupDir..."; tput sgr0
 	mkdir  $backupDir
-	chown -R $backupUser:$backupUser $backupDir 
+	
+	chmod 777 $backupScriptDir 
+	chown $backupUser:$backupUser $backupDir 
 fi
 
 if [ ! -d $backupScriptDir ]; then
-	echo -e "\e[91m$Creating $backupScriptDir..."
+	echo -e "\e[94mCreating $backupScriptDir..."; tput sgr0
 	mkdir  $backupScriptDir
 	
-	cp $configfile $backupScriptDir
-	
-	chown -R $backupUser:$backupUser $backupScriptDir 
+	chmod 777 $backupScriptDir 
+	chown $backupUser:$backupUser $backupScriptDir 
 fi
 
-date=`date +%Y-%m-%d-%H-%M`
-tarname="$backupDir/backup_$(hostname)_$date.tar.bz2"
-OPTS="--force --ignore-errors --delete-excluded --delete --backup --backup-dir=/$BACKUPDIR -a"
+if [ ! -d $logDirectory ]; then
+	echo -e "\e[94mCreating $logDirectory..."; tput sgr0
+	mkdir  $logDirectory
+		
+	chmod 777 $logDirectory 
+	chown $backupUser:$backupUser $logDirectory 
+fi
 
-exit 0
+#both the backup list and backup config could contain userdate, don't overwrite if they already exist
 
-#zip files
-tar -cjf $tarname $backupDir/
+if [ ! -f "$backupScriptDir/backup-config" ]; then
+	echo -e "\e[94mCopy $configfile to $backupScriptDir/backup-config..."; tput sgr0
+	cp $configfile "$backupScriptDir/backup-config"
+	chown $backupUser:$backupUser "$backupScriptDir/backup-config"
+fi
 
-#export PATH=$PATH:/bin:/usr/bin:/usr/local/bin
-rsync -av $tarname $backupTargetUser@$backupTargetHost:$backupTargetDirectory
+if [ ! -f "$backupScriptDir/backup-config" ]; then
+	echo -e "\e[94mCreating $backupList..."; tput sgr0
+	touch $backupList
+	chown -R $backupUser:$backupUser $backupList
+fi
 
-rm $tarname
 
-#Remove files older than cutoff time on the target host
-ssh $backupTargetUser@$backupTargetHost find $backupTargetDirectory -mtime +1
+#No userdata in the actual backup script, always overwrite
+echo -e "\e[94mCopy $backupsyncscript to $backupScriptDir/raspi-backup-syncfiles.sh..."; tput sgr0
+cp $backupsyncscript "$backupScriptDir/raspi-backup-syncfiles.sh"
+chmod 777 "$backupScriptDir/raspi-backup-syncfiles.sh"
+chown -R $backupUser:$backupUser "$backupScriptDir/raspi-backup-syncfiles.sh"
+
+
+echo -e "\e[92mAll files set up, please see $backupList for instructions on how to further set up backup"
+echo ""
+echo -e "\e[92mBackup setup complete!"
+tput sgr0
+
