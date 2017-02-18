@@ -114,10 +114,10 @@ rsync -av $tarname $backupTargetUser@$backupTargetHost:$backupTargetDirectory >>
 
 #Remove files older than cutoff time on the target host
 echo "$(date +%Y-%m-%d_%H:%M:%S) - Removing files older than $backupcutoff days in $backupTargetDirectory on host $backupTargetHost" >> $logFile
-ssh $backupTargetUser@$backupTargetHost find $backupTargetDirectory -mindepth 1 -mtime +$backupcutoff #-delete >> $logFile 2>&1
+ssh $backupTargetUser@$backupTargetHost find $backupTargetDirectory -mindepth 1 -mtime +$backupcutoff -delete >> $logFile 2>&1
 
 
-echo "$(date +%Y-%m-%d_%H:%M:%S) - Backup complete, removing all files $backupDir " >> $logFile
+echo "$(date +%Y-%m-%d_%H:%M:%S) - Backup complete, removing all files in $backupDir " >> $logFile
 rm -rf $backupDir/* >> $logFile 2>&1
 
 echo "$(date +%Y-%m-%d_%H:%M:%S) - Cleaning up the log directory" >> $logFile

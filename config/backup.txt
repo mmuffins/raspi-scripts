@@ -1,0 +1,26 @@
+#User that should be created for the backup
+backupUser="pibackup"
+
+#host to send the backups to
+backupTargetHost="backupserver"
+
+#user on the target host
+backupTargetUser=pibackup
+
+#directory on the backup target 
+backupTargetDirectory="/home/$backupTargetUser/testbackup"
+
+#number of days after which old backups are deleted on the target host
+backupcutoff=10
+
+#Directory which should be backed up
+backupDir="/home/$backupUser/backup"
+
+#Directory containing the actual backup script
+backupScriptDir="/home/$backupUser/backupscript"
+
+#log file location
+logDirectory="$backupScriptDir/logs"
+
+#list of files and directory that should be backed up
+backupList="$backupScriptDir/backuplist"
