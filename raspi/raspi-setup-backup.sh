@@ -58,6 +58,17 @@ fi
 
 ExitIfFileIsMissing "$sshIdFile"
 
+echo -e "\e[94mGiving sudo permissions to $backupUser..."
+tput sgr0
+
+if [ "$(grep -c "^$backupUser " /etc/sudoers)" -gt 0 ]; then
+	echo -e "\e[94m$backupUser was already present in /etc/sudoers, no actions were performed."
+		tput sgr0
+else
+	sudo bash -c 'echo "$0 ALL=(ALL) NOPASSWD: ALL" | (EDITOR="tee -a" visudo)' $backupUser
+fi
+
+
 #Take ownership of the ssh directory to prevent permission errors
 chown -R $USER:$USER $sshDirectory
 
@@ -136,10 +147,11 @@ if [ ! -f "$backupScriptDir/backup-config" ]; then
 	chown $backupUser:$backupUser "$backupScriptDir/backup-config"
 fi
 
-if [ ! -f "$backupScriptDir/backup-config" ]; then
+if [ ! -f "$backupList" ]; then
 	echo -e "\e[94mCreating $backupList..."; tput sgr0
 	touch $backupList
 	chown -R $backupUser:$backupUser $backupList
+	chmod 666 $backupList 
 fi
 
 
@@ -149,6 +161,22 @@ cp $backupsyncscript "$backupScriptDir/raspi-backup-syncfiles.sh"
 chmod 777 "$backupScriptDir/raspi-backup-syncfiles.sh"
 chown -R $backupUser:$backupUser "$backupScriptDir/raspi-backup-syncfiles.sh"
 
+
+echo -e "\e[94mSetting up cronjob..."; tput sgr0
+
+
+if [ "$(crontab -l -u $backupUser | grep -c "^no crontab for")" = 0 ]; then
+	#Workaround to create new blank crontab for the backup user with the correct permissions
+	crontab -l -u $backupUser |sed ""|crontab -u $backupUser -
+fi
+
+if [ "$(crontab -l -u $backupUser | grep -c "$backupScriptDir/raspi-backup-syncfiles.sh")" -gt 0 ]; then
+	#Remove old cronjob if it already exists	
+	crontab -l -u $backupUser | grep -v "$backupScriptDir/raspi-backup-syncfiles.sh" 2>/dev/null | { cat;} | crontab -u $backupUser -
+
+fi
+
+crontab -l -u $backupUser 2>/dev/null | { cat; echo "$cronSchedule bash $backupScriptDir/raspi-backup-syncfiles.sh >/dev/null 2>&1"; } |  crontab -u $backupUser -
 
 echo -e "\e[92mAll files set up, please see $backupList for instructions on how to further set up backup"
 echo ""

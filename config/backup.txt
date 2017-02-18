@@ -24,3 +24,6 @@ logDirectory="$backupScriptDir/logs"
 
 #list of files and directory that should be backed up
 backupList="$backupScriptDir/backuplist"
+
+#schedule for the backup job, in crontab format -> http://crontab-generator.org/
+cronSchedule="0 1-23/2 * * *"
