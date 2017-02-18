@@ -69,6 +69,15 @@ echo "$(date +%Y-%m-%d_%H:%M:%S) - Using config file at $configfile" >> $logFile
 
 #Check prerequisites
 
+ExitIfFileIsMissing $backupList >> $logFile
+backupFiles=($(GetSettings "$backupList"))
+
+
+if [ ${#backupFiles[@]}  -lt 1 ]; then
+	echo "$(date +%Y-%m-%d_%H:%M:%S) - Nothing found to backup in $backupList" >> $logFile
+	exit 2
+if
+
 echo "$(date +%Y-%m-%d_%H:%M:%S) - Testing ssh connection for $backupTargetUser@$backupTargetHost" >> $logFile
 ssh -q $backupTargetUser@$backupTargetHost exit >> $logFile 2>&1
 
@@ -86,31 +95,42 @@ if [ $? != 0 ]; then
 fi
 
 
-
 if [ ! -d $backupDir ]; then
 	echo "$(date +%Y-%m-%d_%H:%M:%S) - Could not find $backupDir" >> $logFile
 	exit 2
 fi
 
+echo "$(date +%Y-%m-%d_%H:%M:%S) - All prerequisites met, starting backup" >> $logFile
+
+for i in "${!backupFiles[@]}"; do 
+	backupentry=${backupFiles[$i]}
+	sudo cp -r  --parents $backupentry $backupDir >> $logFile 2>&1
+	
+	if [ $? != 0 ]; then
+		echo "$(date +%Y-%m-%d_%H:%M:%S) - Error while executing sudo cp -P $backupentry $backupDir - continuing with next entry" >> $logFile
+	fi
+done
 
 if [ $(ls $backupDir | wc -l)  -lt 1 ]; then
-	echo "$(date +%Y-%m-%d_%H:%M:%S) - No files to back up in $backupDir" >> $logFile
+	echo "$(date +%Y-%m-%d_%H:%M:%S) - Nothing to back up in $backupDir" >> $logFile
 	exit 2
 fi
 
-echo "$(date +%Y-%m-%d_%H:%M:%S) - All prerequisites met, starting backup" >> $logFile
+#Also backup the backupsettings and backuplist for reference
+sudo cp --parents $configfile $backupDir
+sudo cp --parents $backupList $backupDir
+
+echo "$(date +%Y-%m-%d_%H:%M:%S) - Finished copying files to $backupDir" >> $logFile
 
 tarname="$backupDir/backup_$(hostname)_$backupStartDate.tar.bz2"
 
-echo "$(date +%Y-%m-%d_%H:%M:%S) - Zipping files to $tarname" >> $logFile
+echo "$(date +%Y-%m-%d_%H:%M:%S) - Zipping files in $backupDir to $tarname" >> $logFile
 
-#zip files
 tar -cjf $tarname $backupDir/  >> $logFile 2>&1
+exit 0
 
-#export PATH=$PATH:/bin:/usr/bin:/usr/local/bin
 echo "$(date +%Y-%m-%d_%H:%M:%S) - Syncing files:" >> $logFile
 rsync -av $tarname $backupTargetUser@$backupTargetHost:$backupTargetDirectory >> $logFile 2>&1
-
 
 #Remove files older than cutoff time on the target host
 echo "$(date +%Y-%m-%d_%H:%M:%S) - Removing files older than $backupcutoff days in $backupTargetDirectory on host $backupTargetHost" >> $logFile
@@ -118,7 +138,7 @@ ssh $backupTargetUser@$backupTargetHost find $backupTargetDirectory -mindepth 1 
 
 
 echo "$(date +%Y-%m-%d_%H:%M:%S) - Backup complete, removing all files in $backupDir " >> $logFile
-rm -rf $backupDir/* >> $logFile 2>&1
+sudo rm -rf $backupDir/* >> $logFile 2>&1
 
 echo "$(date +%Y-%m-%d_%H:%M:%S) - Cleaning up the log directory" >> $logFile
 find $logDirectory -mindepth 1 -mtime +30 -delete >> $logFile 2>&1
