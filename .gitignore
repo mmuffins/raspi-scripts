@@ -2,5 +2,4 @@
 /config/example/*
 /windows/*
 /raspi/old/*
-/raspi/raspi-setup-backup
-/raspi/raspi-setup-samba
+/raspi/raspi-setup-samba.sh
