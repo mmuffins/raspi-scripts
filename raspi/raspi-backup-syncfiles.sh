@@ -141,6 +141,11 @@ fi
 echo "$(date +%Y-%m-%d_%H:%M:%S) - Syncing files:" >> $logFile
 rsync -av $tarname $backupTargetUser@$backupTargetHost:$backupTargetDirectory >> $logFile 2>&1
 
+if [ $? != 0 ]; then
+	echo "$(date +%Y-%m-%d_%H:%M:%S) - Error while  executing rsync -av $tarname $backupTargetUser@$backupTargetHost:$backupTargetDirectory" >> $logFile
+	exit 2
+fi
+
 #Remove files older than cutoff time on the target host
 echo "$(date +%Y-%m-%d_%H:%M:%S) - Removing files older than $backupcutoff days in $backupTargetDirectory on host $backupTargetHost" >> $logFile
 ssh $backupTargetUser@$backupTargetHost find $backupTargetDirectory -mindepth 1 -mtime +$backupcutoff -delete >> $logFile 2>&1

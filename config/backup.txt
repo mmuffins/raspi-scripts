@@ -1,29 +1,29 @@
 #User that should be created for the backup
-backupUser="pibackup"
+#backupUser="pibackup"
 
 #host to send the backups to
-backupTargetHost="backupserver"
+#backupTargetHost="backupserver"
 
 #user on the target host
-backupTargetUser=pibackup
+#backupTargetUser=pibackup
 
 #directory on the backup target 
-backupTargetDirectory="/home/$backupTargetUser/testbackup"
+#backupTargetDirectory="/home/$backupTargetUser/testbackup"
 
 #number of days after which old backups are deleted on the target host
-backupcutoff=10
+#backupcutoff=10
 
 #Directory which should be backed up
-backupDir="/home/$backupUser/backup"
+#backupDir="/home/$backupUser/backup"
 
 #Directory containing the actual backup script
-backupScriptDir="/home/$backupUser/backupscript"
+#backupScriptDir="/home/$backupUser/backupscript"
 
 #log file location
-logDirectory="$backupScriptDir/logs"
+#logDirectory="$backupScriptDir/logs"
 
 #list of files and directory that should be backed up
-backupList="$backupScriptDir/backuplist"
+#backupList="$backupScriptDir/backup-list"
 
 #schedule for the backup job, in crontab format -> http://crontab-generator.org/
-cronSchedule="0 1-23/2 * * *"
+#cronSchedule="0 1-23/2 * * *"
