@@ -76,7 +76,7 @@ backupFiles=($(GetSettings "$backupList"))
 if [ ${#backupFiles[@]}  -lt 1 ]; then
 	echo "$(date +%Y-%m-%d_%H:%M:%S) - Nothing found to backup in $backupList" >> $logFile
 	exit 2
-if
+fi
 
 echo "$(date +%Y-%m-%d_%H:%M:%S) - Testing ssh connection for $backupTargetUser@$backupTargetHost" >> $logFile
 ssh -q $backupTargetUser@$backupTargetHost exit >> $logFile 2>&1
@@ -102,35 +102,49 @@ fi
 
 echo "$(date +%Y-%m-%d_%H:%M:%S) - All prerequisites met, starting backup" >> $logFile
 
+
+tarname="$backupDir/backup_$(hostname)_$backupStartDate.tar"
+echo "$(date +%Y-%m-%d_%H:%M:%S) - Archiving files to $tarname" >> $logFile
+
+#backup backupsettings and backuplist for reference
+tar -cpf $tarname $configfile >> $logFile 2>&1
+tar -rpf $tarname $backupList >> $logFile 2>&1
+
 for i in "${!backupFiles[@]}"; do 
 	backupentry=${backupFiles[$i]}
-	sudo cp -r  --parents $backupentry $backupDir >> $logFile 2>&1
+	sudo tar -rpf $tarname $backupList $backupentry >> $logFile 2>&1
 	
 	if [ $? != 0 ]; then
-		echo "$(date +%Y-%m-%d_%H:%M:%S) - Error while executing sudo cp -P $backupentry $backupDir - continuing with next entry" >> $logFile
+		echo "$(date +%Y-%m-%d_%H:%M:%S) - Error while executing sudo tar -rpf $tarname $backupList $backupentry - continuing with next entry" >> $logFile
 	fi
 done
 
-if [ $(ls $backupDir | wc -l)  -lt 1 ]; then
-	echo "$(date +%Y-%m-%d_%H:%M:%S) - Nothing to back up in $backupDir" >> $logFile
-	exit 2
+echo "$(date +%Y-%m-%d_%H:%M:%S) - Finished creating backup archive" >> $logFile
+echo "$(date +%Y-%m-%d_%H:%M:%S) - Compressing backup archive" >> $logFile
+
+bzip2 -f $tarname >> $logFile 2>&1
+
+if [ $? != 0 ]; then
+	echo "$(date +%Y-%m-%d_%H:%M:%S) - Error while  compressing archive, attempting to sync uncompressed archive" >> $logFile
 fi
 
-#Also backup the backupsettings and backuplist for reference
-sudo cp --parents $configfile $backupDir
-sudo cp --parents $backupList $backupDir
-
-echo "$(date +%Y-%m-%d_%H:%M:%S) - Finished copying files to $backupDir" >> $logFile
-
-tarname="$backupDir/backup_$(hostname)_$backupStartDate.tar.bz2"
-
-echo "$(date +%Y-%m-%d_%H:%M:%S) - Zipping files in $backupDir to $tarname" >> $logFile
-
-tar -cjf $tarname $backupDir/  >> $logFile 2>&1
-exit 0
+#Just in case, check if either the compressed or uncompressed archive exists and just continue with whatever is available
+if [ -f "$backupDir/backup_$(hostname)_$backupStartDate.tar.bz2" ]; then
+	tarname="$backupDir/backup_$(hostname)_$backupStartDate.tar.bz2"
+else
+	if [ ! -f "$backupDir/backup_$(hostname)_$backupStartDate.tar" ]; then
+		echo "$(date +%Y-%m-%d_%H:%M:%S) - Could not find $tarname or $backupDir/backup_$(hostname)_$backupStartDate.tar.bz2, aborting script" >> $logFile
+		exit 2
+	fi
+fi
 
 echo "$(date +%Y-%m-%d_%H:%M:%S) - Syncing files:" >> $logFile
 rsync -av $tarname $backupTargetUser@$backupTargetHost:$backupTargetDirectory >> $logFile 2>&1
+
+if [ $? != 0 ]; then
+	echo "$(date +%Y-%m-%d_%H:%M:%S) - Error while  executing rsync -av $tarname $backupTargetUser@$backupTargetHost:$backupTargetDirectory" >> $logFile
+	exit 2
+fi
 
 #Remove files older than cutoff time on the target host
 echo "$(date +%Y-%m-%d_%H:%M:%S) - Removing files older than $backupcutoff days in $backupTargetDirectory on host $backupTargetHost" >> $logFile

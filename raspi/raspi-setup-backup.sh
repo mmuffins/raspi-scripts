@@ -119,7 +119,7 @@ if [ ! -d $backupDir ]; then
 	echo -e "\e[94mCreating $backupDir..."; tput sgr0
 	mkdir  $backupDir
 	
-	chmod 777 $backupScriptDir 
+	chmod 777 $backupDir 
 	chown $backupUser:$backupUser $backupDir 
 fi
 
