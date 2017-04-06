@@ -37,7 +37,7 @@ hostname=$(grep "$mac" $configdir/config/maclist.txt | awk -F';' {'print $1'})
 if [ -z "$hostname" ];
 then
 	echo -e "\e[91mCould not determine hostname, aborting script"; tput sgr0
-	return 2
+	exit 2
 fi
 
 echo -e "\e[94mFound hostname $hostname"; tput sgr0
@@ -48,7 +48,7 @@ ipaddr=$(grep "$hostname" $configdir/config/hostlist.txt | awk -F';' {'print $2'
 if [ -z "$ipaddr" ];
 then
 	echo -e "\e[91mCould not determine ip address, aborting script"; tput sgr0
-	return 2
+	exit 2
 fi
 
 echo -e "\e[94mNew local IP Address is $ipaddr"; tput sgr0
