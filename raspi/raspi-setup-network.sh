@@ -32,7 +32,7 @@ mac=$(cat /sys/class/net/eth0/address | sed 's/:/-/g')
 echo -e "\e[94mFound MAC address $mac"; tput sgr0
 echo -e "\e[94mGetting hostname for mac $mac..."; tput sgr0
 
-hostname=$(grep "$mac" $configdir/config/maclist.txt | awk -F';' {'print $1'})
+hostname=$(grep -i "$mac" $configdir/config/maclist.txt | awk -F';' {'print $1'})
 
 if [ -z "$hostname" ];
 then
@@ -43,7 +43,7 @@ fi
 echo -e "\e[94mFound hostname $hostname"; tput sgr0
 
 echo -e "\e[94mGetting ip address..."; tput sgr0
-ipaddr=$(grep "$hostname" $configdir/config/hostlist.txt | awk -F';' {'print $2'})
+ipaddr=$(grep -i "$hostname" $configdir/config/hostlist.txt | awk -F';' {'print $2'})
 
 if [ -z "$ipaddr" ];
 then
@@ -54,17 +54,17 @@ fi
 echo -e "\e[94mNew local IP Address is $ipaddr"; tput sgr0
 
 echo -e "\e[94mGetting gateway address..."; tput sgr0
-gatewayaddr=$(grep -v -e '^$' $configdir/config/gateway.txt)
+gatewayaddr=$(grep -i -v -e '^$' $configdir/config/gateway.txt)
 echo -e "\e[94mFound gateway address $gatewayaddr"; tput sgr0
 
 echo -e "\e[94mGetting subnet data..."; tput sgr0
-subnetaddr=$(grep "subnet" $configdir/config/subnet.txt | awk -F';' {'print $2'})
+subnetaddr=$(grep -i "subnet" $configdir/config/subnet.txt | awk -F';' {'print $2'})
 echo -e "\e[94mFound subnet $subnetaddr"; tput sgr0
 
-netmaskaddr=$(grep "netmask" $configdir/config/subnet.txt | awk -F';' {'print $2'})
+netmaskaddr=$(grep -i "netmask" $configdir/config/subnet.txt | awk -F';' {'print $2'})
 echo -e "\e[94mFound subnet mask $netmaskaddr"; tput sgr0
 
-broadcastaddr=$(grep "broadcast" $configdir/config/subnet.txt | awk -F';' {'print $2'})
+broadcastaddr=$(grep -i "broadcast" $configdir/config/subnet.txt | awk -F';' {'print $2'})
 echo -e "\e[94mFound broadcast IP $broadcastaddr"; tput sgr0
 
 echo -e "\e[94mGetting DNS hosts..."; tput sgr0
