@@ -1,13 +1,15 @@
 #!/bin/bash
 
-#Functions for other deployment scripts
-#Colors:
-#Header (magenta) echo -e "\e[95m
-#Error (red) echo -e "\e[91m
-#Success (green) echo -e "\e[92m
-#Default verbose (blue) echo -e "\e[94m
-#Prompt (yellow) echo -e "\e[93m
-#tput sgr0
+# Functions for other deployment scripts
+
+# Formatting colors
+BOLD="\e[94m"
+NORMAL="\e[94m"
+GREEN="\e[92m" # Success
+BLUE="\e[94m" # Default verbose (light blue)
+RED="\e[91m" # Error
+YELLOW="\e[93m" # Prompt
+MAGENTA="\e[95m" # Prompt
 
 
 CreateUser() {
