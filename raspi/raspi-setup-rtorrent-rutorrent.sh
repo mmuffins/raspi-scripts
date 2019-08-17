@@ -432,7 +432,7 @@ then
 	source "$configdir/config/backup.txt"
 fi
 
-echo -e "${LBLUE}Using backup file $backupList ${NORMAL}"
+echo -e "${BLUE}Using backup file $backupList ${NORMAL}"
 
 if [ -f $backupList ];
 then
