@@ -94,6 +94,7 @@ echo -e "\e[93mPlease enter the password for user $backupTargetUser when prompte
 ssh-copy-id -i $sshIdFile $backupTargetUser@$backupTargetHost
 
 chown -R $backupUser:$backupUser $sshDirectory
+chmod 400 $sshIdFile
 
 #******************
 #It's possible to test if login works by running
