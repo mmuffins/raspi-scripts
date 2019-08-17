@@ -25,7 +25,7 @@ CreateUser() {
 		return 2
 	fi
 
-	if [ "$(grep -c "^$username:" /etc/passwd)" -gt 0 ]; then
+	if [ $(id -u $username 2>/dev/null || echo -1) -ge 0 ]; then
 		echo -e "\e[94m$username was already present in /etc/passwd, no actions were performed."
 		tput sgr0
 		return 2
