@@ -53,6 +53,12 @@ CreateUser() {
 		return 2
 	fi
 	
+	# make user owner of his home directory if it was created
+	newUserHomeDir="/home/$username"
+	if [ -d $newUserHomeDir ]; then 
+		chown $username:$username $newUserHomeDir
+	fi
+	
 	return 0
 }
 
