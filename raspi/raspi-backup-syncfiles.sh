@@ -24,8 +24,6 @@ ExitIfFileIsMissing() {
 	fi
 }
 
-
-
 GetSettings() {
 	#Returns sanatized contents of a config file
 	#$1 - Path of the config file
@@ -72,36 +70,15 @@ echo "$(date +%Y-%m-%d_%H:%M:%S) - Using config file at $configfile" >> $logFile
 ExitIfFileIsMissing $backupList >> $logFile
 backupFiles=($(GetSettings "$backupList"))
 
-
 if [ ${#backupFiles[@]}  -lt 1 ]; then
 	echo "$(date +%Y-%m-%d_%H:%M:%S) - Nothing found to backup in $backupList" >> $logFile
 	exit 2
 fi
 
-echo "$(date +%Y-%m-%d_%H:%M:%S) - Testing ssh connection for $backupTargetUser@$backupTargetHost" >> $logFile
-ssh -q $backupTargetUser@$backupTargetHost exit >> $logFile 2>&1
-
-
-if [ $? != 0 ]; then
-	echo "$(date +%Y-%m-%d_%H:%M:%S) - Could not establish ssh connection" >> $logFile
-	exit 2
-fi
-
-which rsync > /dev/null 2>&1
-
-if [ $? != 0 ]; then
-	echo "$(date +%Y-%m-%d_%H:%M:%S) - rsync was not found" >> $logFile
-	exit 2
-fi
-
-
 if [ ! -d $backupDir ]; then
 	echo "$(date +%Y-%m-%d_%H:%M:%S) - Could not find $backupDir" >> $logFile
 	exit 2
 fi
-
-echo "$(date +%Y-%m-%d_%H:%M:%S) - All prerequisites met, starting backup" >> $logFile
-
 
 tarname="$backupDir/backup_$(hostname)_$backupStartDate.tar"
 echo "$(date +%Y-%m-%d_%H:%M:%S) - Archiving files to $tarname" >> $logFile
@@ -138,18 +115,39 @@ else
 	fi
 fi
 
-echo "$(date +%Y-%m-%d_%H:%M:%S) - Syncing files:" >> $logFile
-rsync -av $tarname $backupTargetUser@$backupTargetHost:$backupTargetDirectory >> $logFile 2>&1
+mountPoint="$configdir/mnt"
+if [ ! -d $mountPoint ]; then
+	echo "$(date +%Y-%m-%d_%H:%M:%S) - Creating local mount directory $mountPoint:" >> $logFile
+	mkdir  $mountPoint >> $logFile 2>&1
+fi
+
+echo "$(date +%Y-%m-%d_%H:%M:%S) - Mounting remote share $remoteshare to local mount point $mountPoint:" >> $logFile
+mount $mountPoint >> $logFile 2>&1
 
 if [ $? != 0 ]; then
-	echo "$(date +%Y-%m-%d_%H:%M:%S) - Error while  executing rsync -av $tarname $backupTargetUser@$backupTargetHost:$backupTargetDirectory" >> $logFile
+	echo "$(date +%Y-%m-%d_%H:%M:%S) - Error while mounting remote share $remoteshare to local mountpoint $mountPoint with user $smbUser, check /etc/fstab" >> $logFile
+	exit 2
+fi
+
+echo "$(date +%Y-%m-%d_%H:%M:%S) - Copy files to remote share:" >> $logFile
+cp --verbose $tarname $mountPoint >> $logFile 2>&1
+
+if [ $? != 0 ]; then
+	echo "$(date +%Y-%m-%d_%H:%M:%S) - Error while executing command 'cp --verbose $tarname $mountPoint'" >> $logFile
 	exit 2
 fi
 
 #Remove files older than cutoff time on the target host
-echo "$(date +%Y-%m-%d_%H:%M:%S) - Removing files older than $backupcutoff days in $backupTargetDirectory on host $backupTargetHost" >> $logFile
-ssh $backupTargetUser@$backupTargetHost find $backupTargetDirectory -mindepth 1 -mtime +$backupcutoff -delete >> $logFile 2>&1
+echo "$(date +%Y-%m-%d_%H:%M:%S) - Removing files older than $backupcutoff days in remote share" >> $logFile
+find $mountPoint -mindepth 1 -mtime +$backupcutoff -delete >> $logFile 2>&1
 
+echo "$(date +%Y-%m-%d_%H:%M:%S) - Removing mounted share" >> $logFile
+umount $mountPoint >> $logFile 2>&1
+
+if [ $? != 0 ]; then
+	echo "$(date +%Y-%m-%d_%H:%M:%S) - Error while unmounting remote share $remoteshare on local mountpoint $mountPoint, check /etc/fstab" >> $logFile
+	exit 2
+fi
 
 echo "$(date +%Y-%m-%d_%H:%M:%S) - Backup complete, removing all files in $backupDir " >> $logFile
 sudo rm -rf $backupDir/* >> $logFile 2>&1
