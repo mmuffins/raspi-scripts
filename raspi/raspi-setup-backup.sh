@@ -101,6 +101,9 @@ chown -R $backupUser:$backupUser "$backupScriptDir/raspi-backup-syncfiles.sh"
 
 echo -e "${BLUE}Installing cifs-utils...${NORMAL}"
 apt-get -y install cifs-utils
+# we want to run samba via docker, the samba daemon can interfere with that, disable it
+systemctl stop smbd
+systemctl disable smbd
 
 echo -e "${BLUE}Updating /etc/fstab...${NORMAL}"
 echo "$remoteshare   $backupScriptDir/mnt  cifs  noauto,users,credentials=$backupCredFile,vers=1.0  0  0" >> /etc/fstab

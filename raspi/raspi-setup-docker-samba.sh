@@ -21,5 +21,10 @@ echo -e "${BLUE}Checking needed config files...${NORMAL}"
 
 ExitIfFileIsMissing "$configdir/config/docker-compose-samba.yaml"
 
+echo -e "${BLUE}Disabling samba daemon service if it's running...${NORMAL}"
+systemctl stop smbd
+systemctl disable smbd
+
+docker pull dperson/samba:armhf
 
 docker create --name samba2 --restart unless-stopped -p 139:139 -p 445:445 -e USERID=$(id -g $sambaUser) -e GROUPID=$(id -g $sambaUser) -e PERMISSION=0700 -e USER="samba;Smb12345" -v /home:/home -e SHARE="home;/home;yes;no;no;all;" -e SHARE2="torrents;/home/rtorrent/torrents;yes;no;no;all;"  dperson/samba:armhf
