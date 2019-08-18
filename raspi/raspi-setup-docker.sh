@@ -14,7 +14,7 @@ configdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 if [ ! -f $configdir/raspi-setup-functions.sh ];
 then
-	echo -e "\e[91mraspi-setup-functions not found in $configdir/raspi-setup-functions, exiting script";tput sgr0
+	echo -e "\e[91mraspi-setup-functions not found in $configdir, exiting script";tput sgr0
 	exit 2
 fi
 
