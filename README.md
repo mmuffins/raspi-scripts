@@ -36,6 +36,7 @@ cd /home/pi/raspi
 sudo bash raspi-setup-network.sh
 sudo bash raspi-setup-users.sh
 sudo mv /home/pi/raspi /home/mmuffins/raspi
+sudo chown -R mmuffins:mmuffins /home/mmuffins/raspi
 sudo reboot
 ```
 
