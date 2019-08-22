@@ -31,6 +31,9 @@ sudo apt-get install apt-transport-https ca-certificates software-properties-com
 echo -e "${BLUE}Installing docker...${NORMAL}"
 curl -fsSL get.docker.com -o get-docker.sh && sh get-docker.sh
 
+echo -e "${BLUE}Instlling docker compose...${NORMAL}"
+sudo apt-get -y install docker-compose
+
 echo -e "${BLUE}Setting user permissions...${NORMAL}"
 sudo groupadd docker
 sudo usermod -aG docker michael
@@ -49,5 +52,6 @@ echo -e "${BLUE}Starting docker...${NORMAL}"
 sudo systemctl enable docker
 sudo systemctl start docker.service
 docker info
+docker-compose info
 
 echo -e "${BLUE}Try running 'docker run hello-world' to see if everything is set up correctly${NORMAL}"
