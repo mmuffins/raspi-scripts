@@ -3,13 +3,14 @@
 # rutorrent setup via docker
 
 rtorrentUser="rutorrent" # user will be created to run rutorrent
+dockerDir="/home/mmuffins/docker"
 
+configdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 if [ ! -f $configdir/raspi-setup-functions.sh ];
 then
 	echo -e "\e[91mraspi-setup-functions not found in $configdir, exiting script";tput sgr0
 	exit 2
 fi
-
 source "$configdir/raspi-setup-functions.sh"
 
 if [ "$(id -u)" != "0" ]; then
@@ -17,10 +18,13 @@ if [ "$(id -u)" != "0" ]; then
 	exit 2
 fi
 
-
 echo ""
 echo ""
 echo -e "${MAGENTA}ruTorrent setup${NORMAL}"
+
+echo -e "${BLUE}Checking needed config files...${NORMAL}"
+$dockerComposeFile = "$configdir/config/docker-compose-rutorrent.yaml"
+ExitIfFileIsMissing $dockerComposeFile
 
 echo -e "${BLUE}Increasing somaxconn and tcp_max_syn_backlog for better compatibility with torrents...${NORMAL}"
 
@@ -61,6 +65,7 @@ if [ -f $backupList ];
 then
 	echo "#rtorrent" >> $backupList
 	echo "/home/$rtorrentUser/config/*" >> $backupList
+	grep -qF "$dockerDir/*" "$backupList" || echo "$dockerDir/*" >> $backupList
 else
 	echo -e "${RED}Could not locate backup at $backupList, backups were not scheduled${NORMAL}"
 fi
@@ -76,8 +81,22 @@ if [ "$(crontab -l -u $rtorrentUser | grep -c ".torrent' -execdir rm --")" -gt 0
 	crontab -l -u $rtorrentUser | grep -v ".torrent' -execdir rm --" 2>/dev/null | { cat;} | crontab -u $rtorrentUser -
 fi
 
-crontab -l -u $rtorrentUser 2>/dev/null | { cat; echo "0 3 * * * bash find /home/rtorrent/config/rutorrent/profiles/torrents/ -type f -mtime +60 -name '*).torrent' -execdir rm -- '{}' \;"; } |  crontab -u $rtorrentUser -
+crontab -l -u $rtorrentUser 2>/dev/null | { cat; echo "0 3 * * * bash find /home/$rtorrentUser/config/rutorrent/profiles/torrents/ -type f -mtime +60 -name '*).torrent' -execdir rm -- '{}' \;"; } |  crontab -u $rtorrentUser -
 
+echo -e "${BLUE}Creating docker compose files...${NORMAL}"
 
-# set --sysctl?
-docker create --name=rutorrent2 --restart unless-stopped -p 80:80 -p 5000:5000 -p 51413:51413 -p 6881:6881/udp --cpu-shares 512 -e PUID=1000 -e PGID=1000 -v /home/rtorrent/config:/config -v /home/rtorrent/torrents:/downloads linuxserver/rutorrent
+mkdir -p $dockerDir --verbose
+cp $dockerComposeFile "$dockerDir/docker-compose-rutorrent.yaml"
+
+dockerComposeFile="$dockerDir/docker-compose-rutorrent.yaml"
+
+dockerPUID=$(id -u $rtorrentUser)
+sed -i "s/PUID=<PUID>/PUID=$dockerPUID/g" $dockerComposeFile
+
+dockerPGID=$(id -g $rtorrentUser)
+sed -i "s/PGID=<PGID>/PGID=$dockerPGID/g" $dockerComposeFile
+
+sed -i "s/<dockerConfigPath>:/\/home\/$rtorrentUser\/config:/g" $dockerComposeFile
+sed -i "s/<dockerDownloadPath>:/\/home\/$rtorrentUser\/torrents:/g" $dockerComposeFile
+
+echo -e "${GREEN}Docker ruTorrent setup complete. Run 'docker-compose -f $dockerComposeFile up --detach'to start docker${NORMAL}"
