@@ -13,10 +13,7 @@ CreateBackupDir() {
 	#$1 - Path
 	#$2 - owner user
 	#$3 - permission mask
-	if [ ! -d $1 ]; then
-		mkdir  $1
-	fi
-	
+	mkdir -p  $1
 	chown $2:$2 $1 
 	chmod $3 $1 
 }

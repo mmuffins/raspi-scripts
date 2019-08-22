@@ -74,7 +74,7 @@ ConfigureSSH() {
 	echo -e "\e[94mCreating ssh keypair for $username..."
 	echo -e "\e[94mCreating $sshDirectory..."
 	tput sgr0
-	mkdir $sshDirectory
+	mkdir -p $sshDirectory
 	chmod 700 $sshDirectory
 	
 	#Take ownership of the ssh Directory to prevent permission errors

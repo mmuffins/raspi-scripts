@@ -116,10 +116,7 @@ else
 fi
 
 mountPoint="$configdir/mnt"
-if [ ! -d $mountPoint ]; then
-	echo "$(date +%Y-%m-%d_%H:%M:%S) - Creating local mount directory $mountPoint:" >> $logFile
-	mkdir  $mountPoint >> $logFile 2>&1
-fi
+mkdir -p $mountPoint --verbose >> $logFile 2>&1
 
 echo "$(date +%Y-%m-%d_%H:%M:%S) - Mounting remote share $remoteshare to local mount point $mountPoint:" >> $logFile
 mount $mountPoint >> $logFile 2>&1
