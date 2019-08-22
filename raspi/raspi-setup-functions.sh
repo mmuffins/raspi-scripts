@@ -3,13 +3,16 @@
 # Functions for other deployment scripts
 
 # Formatting colors
-BOLD="\e[94m"
-NORMAL="\e[94m"
-GREEN="\e[92m" # Success
-BLUE="\e[94m" # Default verbose (light blue)
+BLACK="\e[30m"
 RED="\e[91m" # Error
+GREEN="\e[92m" # Success
 YELLOW="\e[93m" # Prompt
-MAGENTA="\e[95m" # Prompt
+BLUE="\e[94m" # Default verbose (light blue)
+MAGENTA="\e[95m" # Promp
+CYAN="\e[96m"
+NORMAL="\e[97m"
+
+
 
 
 CreateUser() {
