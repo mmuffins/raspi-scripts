@@ -48,6 +48,9 @@ echo "deb https://download.docker.com/linux/raspbian/ buster stable" | sudo tee 
 echo -e "${BLUE}Updating...${NORMAL}"
 sudo apt-get update && sudo apt-get upgrade
 
+echo -e "${BLUE}Installing additional dependencies...${NORMAL}"
+sudo apt install gnupg2 pass
+
 echo -e "${BLUE}Starting docker...${NORMAL}"
 sudo systemctl enable docker
 sudo systemctl start docker.service
