@@ -1,3 +1,5 @@
+### DEPRECATED, see https://github.com/mmuffins/raspi-deployment
+
 # Raspi-Deployment
 A simple set of scripts to automate the tedious baseline configuration when installing a new raspberry pi, including basic network settings, user accounts, samba and backup to a local fileserver.
 
